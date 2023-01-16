@@ -6,10 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="#">
     <title>Cursor Game</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/dist/output.css">
     <script src="script.ts" type="module"></script>
 </head>
 <body>
-    <h1>Hello !!</h1>
+    <div class="w-full flex">
+        <div id="cursor-playground" class="w-full"></div>
+        <div class="w-96 p-1 min-h-screen border-l-2 border-l-black flex flex-col justify-between">
+            <ul id="messages" class="m-0 p-0 list-none"></ul>
+            <form id="form" class="flex">
+                <input id="input" autocomplete="off" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                <button class="text-white bg-blue-700 hover:bg-blue-800 font-medium text-sm rounded-r-lg focus:outline-none px-5 py-2.5">Envoyer</button>
+            </form>
+        </div>
+    </div>
+    <!--<p id="username"></p>-->
 </body>
 </html>
