@@ -1,14 +1,16 @@
 import { io } from 'socket.io-client';
 import { Player } from '../global/types';
 
-const socket = io('http://localhost:3000');
+const socket = io(`${window.location.hostname}:3000`);
 
 const messages = document.getElementById('messages');
-const form = document.getElementById('form');
-const input = <HTMLInputElement>document.getElementById('input');
+const form = document.getElementById('form') as HTMLFormElement;
+const input = document.getElementById('input') as HTMLInputElement;
 const playground = document.getElementById('cursor-playground');
+const username = document.querySelector('#game-infos > h2 > span') as HTMLSpanElement;
+const connectedPlayers = document.querySelector('#game-infos > p') as HTMLParagraphElement;
 
-form?.addEventListener('submit', (e) => {
+form.addEventListener('submit', (e) => {
   e.preventDefault();
   if (input.value) {
     socket.emit('chat_message', input.value);
@@ -59,6 +61,10 @@ socket.on('cursor_player', (data) => {
     cursor.style.left = `${parseData.position.x}px`;
     cursor.style.top = `${parseData.position.y}px`;
   }
+});
+
+socket.on('connectedPlayer', (data) => {
+  connectedPlayers.innerHTML = `<span class="font-bold">${data}</span> joueur${data > 1 ? 's' : ''} connecté${data > 1 ? 's' : ''}`;
 });
 
 export {};
