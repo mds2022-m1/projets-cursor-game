@@ -4,13 +4,26 @@ import { v4 as uuidv4 } from 'uuid';
 import { createServer } from 'http';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { faker } from '@faker-js/faker';
+import cors from 'cors';
 import { Player } from '../global/types';
 
 const app = express();
+const port = 3020;
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 
 let players : Array<Player> = [];
+
+app.use(express.json(), cors());
+
+let playerUsername = faker.name.firstName();
+let playerColor = faker.internet.color();
+
+app.post('/connection', (req) => {
+  // @ts-ignore
+  playerUsername = req.body[0][1];
+  playerColor = req.body[1][1];
+});
 
 /**
  * Se déclenche lorsqu'un joueur se connecte au serveur
@@ -21,8 +34,8 @@ io.on('connection', (socket) => {
    */
   const connectedPlayer : Player = {
     uuid: uuidv4(),
-    name: faker.name.firstName(),
-    color: faker.color.rgb(),
+    name: playerUsername,
+    color: playerColor,
   };
   players = [...players, connectedPlayer];
 
@@ -30,7 +43,9 @@ io.on('connection', (socket) => {
    * Détermine le nombre de joueurs connectés
    */
   let nbPlayers = io.engine.clientsCount;
-  io.emit('connectedPlayer', nbPlayers);
+
+  const data = { nbPlayers, connectedPlayer };
+  io.emit('playerConnection', data);
 
   /**
    * Un joueur envoie un message
@@ -54,13 +69,14 @@ io.on('connection', (socket) => {
    */
   socket.on('disconnect', () => {
     nbPlayers = io.engine.clientsCount;
-    io.emit('connectedPlayer', nbPlayers);
+    io.emit('playerConnection', nbPlayers);
+    io.emit('disconnectedPlayer', connectedPlayer.uuid);
   });
 });
 
 /**
  * On lance le serveur sur le port 3000
  */
-httpServer.listen(3000, () => {
-  console.log('Server running at http://localhost:3000/');
+httpServer.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });

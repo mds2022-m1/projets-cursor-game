@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 import { Player } from '../global/types';
 
-const socket = io(`${window.location.hostname}:3000`);
+const socket = io(`${window.location.hostname}:3020`);
 
 const messages = document.getElementById('messages');
 const form = document.getElementById('form') as HTMLFormElement;
@@ -39,8 +39,8 @@ socket.on('chat_message', (data) => {
   messages?.appendChild(msgToShow);
 });
 
-const createOrUpdateCursor = (socketId : string, player: Player) => {
-  const cursorId = `cursor-${socketId}`;
+const createOrUpdateCursor = (player: Player) => {
+  const cursorId = `cursor-${player.uuid}`;
   const cursor = document.getElementById(cursorId);
 
   if (cursor === null) {
@@ -56,15 +56,24 @@ const createOrUpdateCursor = (socketId : string, player: Player) => {
 
 socket.on('cursor_player', (data) => {
   const parseData = JSON.parse(data);
-  const cursor = createOrUpdateCursor(parseData.socketId, parseData.player);
+  const cursor = createOrUpdateCursor(parseData.player);
   if (cursor) {
     cursor.style.left = `${parseData.position.x}px`;
     cursor.style.top = `${parseData.position.y}px`;
   }
 });
 
-socket.on('connectedPlayer', (data) => {
-  connectedPlayers.innerHTML = `<span class="font-bold">${data}</span> joueur${data > 1 ? 's' : ''} connecté${data > 1 ? 's' : ''}`;
+socket.on('playerConnection', (data) => {
+  username.innerHTML = data.connectedPlayer.name;
+  connectedPlayers.innerHTML = `<span class="font-bold">${data.nbPlayers}</span> joueur${data.nbPlayers > 1 ? 's' : ''} connecté${data.nbPlayers > 1 ? 's' : ''}`;
+});
+
+socket.on('disconnectedPlayer', (data) => {
+  console.log('PLAYER - Disconnected from server');
+  const oldCursor = document.getElementById(`cursor-${data}`);
+  if (oldCursor) {
+    oldCursor.remove();
+  }
 });
 
 export {};
