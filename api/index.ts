@@ -19,6 +19,11 @@ app.use(express.json(), cors());
 let playerUsername = faker.name.firstName();
 let playerColor = faker.internet.color();
 
+app.get('/', (req, res) => {
+  console.log(req);
+  res.send('hello world');
+});
+
 app.post('/connection', (req) => {
   // @ts-ignore
   playerUsername = req.body[0][1];
@@ -69,8 +74,8 @@ io.on('connection', (socket) => {
    */
   socket.on('disconnect', () => {
     nbPlayers = io.engine.clientsCount;
-    io.emit('playerConnection', nbPlayers);
-    io.emit('disconnectedPlayer', connectedPlayer.uuid);
+    const disconnectedPlayer = { nbPlayers, connectedPlayer };
+    io.emit('disconnectedPlayer', disconnectedPlayer);
   });
 });
 
