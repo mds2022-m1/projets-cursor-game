@@ -16,10 +16,7 @@ let players : Array<Player> = [];
 
 app.use(express.json(), cors());
 
-let playerUsername = faker.name.firstName();
-let playerColor = faker.internet.color();
-
-app.get('/', (req, res) => {
+/* app.get('/', (req, res) => {
   console.log(req);
   res.send('hello world');
 });
@@ -28,7 +25,7 @@ app.post('/connection', (req) => {
   // @ts-ignore
   playerUsername = req.body[0][1];
   playerColor = req.body[1][1];
-});
+}); */
 
 /**
  * Se déclenche lorsqu'un joueur se connecte au serveur
@@ -39,10 +36,11 @@ io.on('connection', (socket) => {
    */
   const connectedPlayer : Player = {
     uuid: uuidv4(),
-    name: playerUsername,
-    color: playerColor,
+    name: faker.name.firstName(),
+    color: faker.internet.color(),
   };
   players = [...players, connectedPlayer];
+  console.log('players', players);
 
   /**
    * Détermine le nombre de joueurs connectés
@@ -57,7 +55,7 @@ io.on('connection', (socket) => {
    */
   socket.on('chat_message', (msg) => {
     const msgPlayer = { message: `${connectedPlayer.name} : ${msg}`, color: connectedPlayer.color };
-    io.emit('chat_message', JSON.stringify(msgPlayer));
+    io.emit('chat_message', msgPlayer);
   });
 
   /**
@@ -66,7 +64,7 @@ io.on('connection', (socket) => {
   socket.on('cursor_player', (data) => {
     const newData = JSON.parse(data);
     newData.player = connectedPlayer;
-    io.emit('cursor_player', JSON.stringify(newData));
+    io.emit('cursor_player', newData);
   });
 
   /**
