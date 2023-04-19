@@ -1,5 +1,5 @@
 import React, { FormEvent, useEffect, useState } from 'react';
-import { Player, cursorPlayer } from '../global/types';
+import { useQuery, gql, useMutation } from '@apollo/client';
 import './App.css';
 import './index.css';
 import { socket } from './socket';
@@ -7,11 +7,34 @@ import { socket } from './socket';
 import Cursor from './components/Cursor';
 
 const App = () => {
-  const [connectedPlayers, setConnectedPlayers] = useState<number>(0);
-  const [currentPlayer, setCurrentPlayer] = useState<Player>();
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState('');
-  const [cursors, setCursors] = useState<cursorPlayer[]>([]);
+
+  const GET_PLAYERS = gql`
+        query getPlayers {
+            player {
+                uuid
+                color
+                name
+                position_x
+                position_y
+            }
+            player_aggregate {
+                aggregate {
+                    count
+                }
+            }
+        }`;
+
+  const UPDATE_PLAYER = gql`
+        mutation updatePlayer($uuid: uuid!, $position_x: Int!, $position_y: Int!) {
+            update_player_by_pk(pk_columns:  {uuid: $uuid}, _inc: {position_x: $position_x, position_y: $position_y}) {
+                uuid
+                position_x
+                position_y
+            }
+        }`;
+  const [updatePlayer] = useMutation(UPDATE_PLAYER);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,9 +45,20 @@ const App = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const cursorMessage = { position: { x: e.clientX, y: e.clientY }, player: currentPlayer };
-    socket.emit('cursor_player', JSON.stringify(cursorMessage));
+    console.log(e.clientX, e.clientY);
+    updatePlayer({
+      variables: {
+        uuid: localStorage.getItem('player_uuid'),
+        position_x: e.clientX,
+        position_y: e.clientY,
+      },
+    }).then((res) => {
+      console.log(res);
+    });
   };
+
+  const { loading, data: queryData } = useQuery(GET_PLAYERS);
+  console.log(queryData);
 
   useEffect(() => {
     const onChatMessage = (data: any) => {
@@ -32,49 +66,30 @@ const App = () => {
     };
     socket.on('chat_message', onChatMessage);
 
-    const onCursorPlayer = (data: cursorPlayer) => {
-      setCursors((oldCursors) => (oldCursors.find((cursor) => cursor.player.uuid === data.player.uuid) ? oldCursors.map((cursor) => (cursor.player.uuid === data.player.uuid ? data : cursor)) : [...oldCursors, data]));
-    };
-    socket.on('cursor_player', onCursorPlayer);
-
-    const onPlayerConnection = (data: any) => {
-      setConnectedPlayers(data.nbPlayers);
-      setCurrentPlayer(data.connectedPlayer);
-      console.log(`${data.connectedPlayer.name} - Connected from server`);
-    };
-    socket.on('playerConnection', onPlayerConnection);
-
-    const onDisconnectedPlayer = (data: any) => {
-      console.log(`${data.connectedPlayer.name} - Disconnected from server`);
-      setConnectedPlayers(data.nbPlayers);
-      setCursors((oldCursors) => oldCursors.filter((cursor) => cursor.player.uuid !== data.connectedPlayer.uuid));
-    };
-    socket.on('disconnectedPlayer', onDisconnectedPlayer);
-
     return () => {
-      socket.off('connect');
       socket.off('chat_message');
-      socket.off('cursor_player');
-      socket.off('playerConnection');
-      socket.off('disconnectedPlayer');
     };
   }, []);
 
   return (
+    <div>
+    {loading ? (<p>Chargement...</p>) : (
       <div className="w-full flex">
+
           <div id="cursor-playground" className="w-full" onMouseMove={handleMouseMove}>
-              { cursors.map((cursor) => (
+              { queryData.player.map((player: any) => (
                   <Cursor
-                    key={cursor.player.uuid}
-                    cursorId={cursor.player.uuid}
-                    position={cursor.position}
-                    color={cursor.player.color} />
+                    key={player.uuid}
+                    cursorId={player.uuid}
+                    position={{ x: player.position_x, y: player.position_y }}
+                    color={player.color} />
               ))}
           </div>
+
           <div className="w-96 min-h-screen border-l-2 border-blue-700 flex flex-col">
               <div id="game-infos" className="text-center py-4 border-b-2 border-blue-700">
-                  <h2 className="font-medium text-2xl mt-0 mb-2 text-blue-700">Bienvenue {currentPlayer?.name}</h2>
-                  <p><span className="font-bold">{connectedPlayers}</span> joueur{connectedPlayers > 1 ? 's' : ''} connecté{connectedPlayers > 1 ? 's' : ''}</p>
+                  <h2 className="font-medium text-2xl mt-0 mb-2 text-blue-700">Bienvenue {queryData.player.name}</h2>
+                  <p><span className="font-bold">{queryData.player_aggregate.aggregate.count}</span> joueur{queryData.player_aggregate.aggregate.count > 1 ? 's' : ''} connecté{queryData.player_aggregate.aggregate.count > 1 ? 's' : ''}</p>
               </div>
               <div className="h-full flex flex-col justify-between p-1">
                 <ul id="messages" className="m-0 p-0 list-none">{messages.map((msg) => <li key={msg}>{msg}</li>)}</ul>
@@ -88,6 +103,8 @@ const App = () => {
               </div>
           </div>
       </div>
+    )}
+    </div>
   );
 };
 

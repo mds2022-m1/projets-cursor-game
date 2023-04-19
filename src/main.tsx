@@ -3,23 +3,12 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './index.css';
 import {
-  ApolloClient, createHttpLink, InMemoryCache, ApolloProvider, gql,
+  ApolloClient, createHttpLink, InMemoryCache, ApolloProvider,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
 import Connection from './connection/Connection';
 import App from './App';
-
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Connection/>}/>
-          <Route path="/playground" element={<App/>}/>
-        </Routes>
-      </BrowserRouter>
-    </React.StrictMode>,
-);
 
 const httpLink = createHttpLink({
   uri: 'https://good-lamb-48.hasura.app/v1/graphql',
@@ -34,30 +23,26 @@ const authLink = setContext((_, { headers }) => ({
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache(
+    {
+      typePolicies: {
+        player: {
+          keyFields: ['uuid'],
+        },
+      },
+    },
+  ),
 });
 
-client
-  .query({
-    query: gql`
-      query ExampleQuery {
-        player {
-          uuid
-          color
-          name
-        }
-        player_aggregate {
-          aggregate {
-            count
-          }
-        }
-        gameboard {
-          id
-          players {
-            name
-          }
-        }
-      }
-    `,
-  })
-  .then((result) => console.log(result));
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <ApolloProvider client={client}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Connection/>}/>
+          <Route path="/playground" element={<App/>}/>
+        </Routes>
+      </BrowserRouter>
+    </ApolloProvider>
+  </React.StrictMode>,
+);
