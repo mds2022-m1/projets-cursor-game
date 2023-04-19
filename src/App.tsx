@@ -1,5 +1,5 @@
 import React, { FormEvent, useEffect, useState } from 'react';
-import { Player, cursorPlayer } from '../global/types';
+import { Player, CursorPlayer } from '../global/types';
 import './App.css';
 import './index.css';
 import { socket } from './socket';
@@ -11,7 +11,7 @@ const App = () => {
   const [currentPlayer, setCurrentPlayer] = useState<Player>();
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState('');
-  const [cursors, setCursors] = useState<cursorPlayer[]>([]);
+  const [cursors, setCursors] = useState<CursorPlayer[]>([]);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,7 +32,7 @@ const App = () => {
     };
     socket.on('chat_message', onChatMessage);
 
-    const onCursorPlayer = (data: cursorPlayer) => {
+    const onCursorPlayer = (data: CursorPlayer) => {
       setCursors((oldCursors) => (oldCursors.find((cursor) => cursor.player.uuid === data.player.uuid) ? oldCursors.map((cursor) => (cursor.player.uuid === data.player.uuid ? data : cursor)) : [...oldCursors, data]));
     };
     socket.on('cursor_player', onCursorPlayer);

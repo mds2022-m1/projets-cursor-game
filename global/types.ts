@@ -4,7 +4,7 @@ export interface Player {
   color: string;
 }
 
-export interface cursorPlayer {
+export interface CursorPlayer {
   position: {
     x: number;
     y: number;

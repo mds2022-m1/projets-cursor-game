@@ -16,16 +16,14 @@ let players : Array<Player> = [];
 
 app.use(express.json(), cors());
 
-/* app.get('/', (req, res) => {
-  console.log(req);
-  res.send('hello world');
-});
+let playerUsername = faker.name.firstName();
+let playerColor = faker.internet.color();
 
 app.post('/connection', (req) => {
-  // @ts-ignore
-  playerUsername = req.body[0][1];
-  playerColor = req.body[1][1];
-}); */
+  console.log(req.body);
+  playerUsername = req.body.name;
+  playerColor = req.body.color;
+});
 
 /**
  * Se déclenche lorsqu'un joueur se connecte au serveur
@@ -36,11 +34,10 @@ io.on('connection', (socket) => {
    */
   const connectedPlayer : Player = {
     uuid: uuidv4(),
-    name: faker.name.firstName(),
-    color: faker.internet.color(),
+    name: playerUsername,
+    color: playerColor,
   };
   players = [...players, connectedPlayer];
-  console.log('players', players);
 
   /**
    * Détermine le nombre de joueurs connectés
