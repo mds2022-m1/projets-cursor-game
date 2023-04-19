@@ -1,0 +1,4 @@
+schema:
+  - https://good-lamb-48.hasura.app/v1/graphql:
+      headers:
+        'x-hasura-admin-secret': 'dF2aerLtIDkk8ZHbsG07ZR8AZXTdsFsZ3G0eVM8O7wyFLH9Ghw23gYMe3sEohYdN'
