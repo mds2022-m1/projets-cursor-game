@@ -1,23 +1,13 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import './Connection.css';
-import { useNavigate } from 'react-router-dom';
+import '../App.css';
+import { socket } from '../socket';
 
 const Connection = () => {
-  const navigate = useNavigate();
   const [newPlayer, setNewPlayer] = useState({ name: '', color: '' });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    axios.post('http://localhost:3020/connection', {
-      name: newPlayer.name,
-      color: newPlayer.color,
-    }).then(() => {
-      navigate('/playground');
-    });
-
-    navigate('/playground');
+    socket.emit('playerConnection', { name: newPlayer.name, color: newPlayer.color });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +21,7 @@ const Connection = () => {
             <form id="inscription" onSubmit={handleSubmit} className="flex justify-center flex-col items-center w-1/4" action="" method="GET">
                 <div className="mb-6 w-full">
                     <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900">Entrez votre nom</label>
-                    <input name="name" type="text" id="username" onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required />
+                    <input name="name" type="text" id="username" onChange={handleChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required maxLength={12} />
                 </div>
                 <div className="mb-6 w-full">
                     <label htmlFor="playerColor" className="block mb-2 text-sm font-medium text-gray-900">Choisissez une couleur</label>

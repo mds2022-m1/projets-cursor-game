@@ -2,8 +2,6 @@ import { Server } from 'socket.io';
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { createServer } from 'http';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { faker } from '@faker-js/faker';
 import cors from 'cors';
 import { Player } from '../global/types';
 
@@ -16,48 +14,46 @@ let players : Array<Player> = [];
 
 app.use(express.json(), cors());
 
-let playerUsername = faker.name.firstName();
-let playerColor = faker.internet.color();
-
-app.post('/connection', (req) => {
-  console.log(req.body);
-  playerUsername = req.body.name;
-  playerColor = req.body.color;
-});
-
 /**
  * Se déclenche lorsqu'un joueur se connecte au serveur
  */
 io.on('connection', (socket) => {
-  /**
-   * On génère un joueur aléatoire
-   */
   const connectedPlayer : Player = {
     uuid: uuidv4(),
-    name: playerUsername,
-    color: playerColor,
+    name: '',
+    color: '',
   };
-  players = [...players, connectedPlayer];
+
+  let nbPlayers = 0;
 
   /**
-   * Détermine le nombre de joueurs connectés
+   * On crée un joueur avec un id unique, un nom et une couleur
    */
-  let nbPlayers = io.engine.clientsCount;
+  socket.on('playerConnection', (data) => {
+    connectedPlayer.name = data.name;
+    connectedPlayer.color = data.color;
+    players = [...players, connectedPlayer];
 
-  const data = { nbPlayers, connectedPlayer };
-  io.emit('playerConnection', data);
+    /**
+     * Détermine le nombre de joueurs connectés
+     */
+    nbPlayers = io.engine.clientsCount;
+
+    const playersInfos = { nbPlayers, connectedPlayer };
+    io.emit('playerConnection', playersInfos);
+  });
 
   /**
-   * Un joueur envoie un message
-   */
+     * Un joueur envoie un message
+     */
   socket.on('chat_message', (msg) => {
     const msgPlayer = { message: `${connectedPlayer.name} : ${msg}`, color: connectedPlayer.color };
     io.emit('chat_message', msgPlayer);
   });
 
   /**
-   * Un joueur bouge son curseur
-   */
+     * Un joueur bouge son curseur
+     */
   socket.on('cursor_player', (data) => {
     const newData = JSON.parse(data);
     newData.player = connectedPlayer;
@@ -65,8 +61,8 @@ io.on('connection', (socket) => {
   });
 
   /**
-   * Déconnexion d'un joueur
-   */
+     * Déconnexion d'un joueur
+     */
   socket.on('disconnect', () => {
     nbPlayers = io.engine.clientsCount;
     const disconnectedPlayer = { nbPlayers, connectedPlayer };
