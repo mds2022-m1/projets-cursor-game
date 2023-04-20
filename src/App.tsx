@@ -8,6 +8,7 @@ import Cursor from './components/Cursor';
 
 const App = () => {
   const [messages, setMessages] = useState<string[]>([]);
+  const [currentPlayerID, setCurrentPlayerID] = useState<string>('');
   const [input, setInput] = useState('');
 
   const GET_PLAYERS = gql`
@@ -48,7 +49,7 @@ const App = () => {
     console.log(e.clientX, e.clientY);
     updatePlayer({
       variables: {
-        uuid: localStorage.getItem('player_uuid'),
+        uuid: currentPlayerID,
         position_x: e.clientX,
         position_y: e.clientY,
       },
@@ -58,9 +59,9 @@ const App = () => {
   };
 
   const { loading, data: queryData } = useQuery(GET_PLAYERS);
-  console.log(queryData);
 
   useEffect(() => {
+    setCurrentPlayerID(localStorage.getItem('player_uuid') || '');
     const onChatMessage = (data: any) => {
       setMessages((oldMessages) => [...oldMessages, data.message]);
     };
@@ -88,7 +89,7 @@ const App = () => {
 
           <div className="w-96 min-h-screen border-l-2 border-blue-700 flex flex-col">
               <div id="game-infos" className="text-center py-4 border-b-2 border-blue-700">
-                  <h2 className="font-medium text-2xl mt-0 mb-2 text-blue-700">Bienvenue {queryData.player.name}</h2>
+                  <h2 className="font-medium text-2xl mt-0 mb-2 text-blue-700">Bienvenue {queryData?.player.find((player: any) => player.uuid === currentPlayerID).name}</h2>
                   <p><span className="font-bold">{queryData.player_aggregate.aggregate.count}</span> joueur{queryData.player_aggregate.aggregate.count > 1 ? 's' : ''} connecté{queryData.player_aggregate.aggregate.count > 1 ? 's' : ''}</p>
               </div>
               <div className="h-full flex flex-col justify-between p-1">
