@@ -27,7 +27,9 @@ const App = () => {
 
     const onPlayerConnection = (data: any) => {
       setConnectedPlayers(data.nbPlayers);
-      setCurrentPlayer(data.connectedPlayer);
+      if (data.connectedPlayer.socketId === socket.id) {
+        setCurrentPlayer(data.connectedPlayer);
+      }
     };
     socket.on('playerConnection', onPlayerConnection);
 

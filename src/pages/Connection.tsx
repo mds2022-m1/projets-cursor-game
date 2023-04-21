@@ -7,7 +7,7 @@ const Connection = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    socket.emit('playerConnection', { name: newPlayer.name, color: newPlayer.color });
+    socket.emit('playerConnection', { name: newPlayer.name, color: newPlayer.color, socketId: socket.id });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -20,6 +20,7 @@ app.use(express.json(), cors());
 io.on('connection', (socket) => {
   const connectedPlayer : Player = {
     uuid: uuidv4(),
+    socketId: socket.id,
     name: '',
     color: '',
   };
@@ -30,9 +31,11 @@ io.on('connection', (socket) => {
    * On crée un joueur avec un id unique, un nom et une couleur
    */
   socket.on('playerConnection', (data) => {
-    connectedPlayer.name = data.name;
-    connectedPlayer.color = data.color;
-    players = [...players, connectedPlayer];
+    if (connectedPlayer.socketId === data.socketId) {
+      connectedPlayer.name = data.name;
+      connectedPlayer.color = data.color;
+      players = [...players, connectedPlayer];
+    }
 
     /**
      * Détermine le nombre de joueurs connectés
