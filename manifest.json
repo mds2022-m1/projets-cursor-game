@@ -1,0 +1,17 @@
+{
+  "name": "Cursor Game",
+  "short_name": "Cursor Game",
+  "theme_color": "#1d4ed8",
+  "background_color": "#ffffff",
+  "display": "browser",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "./assets/images/cursor.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    }
+  ]
+}

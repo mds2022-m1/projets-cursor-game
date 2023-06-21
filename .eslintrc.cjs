@@ -11,5 +11,6 @@ module.exports = {
     rules: {
         "max-len": "off",
         "import/extensions": "off",
+        "import/no-extraneous-dependencies": "off",
     }
 }

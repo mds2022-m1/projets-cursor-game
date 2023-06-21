@@ -16,5 +16,5 @@
     "skipLibCheck": true,
     "jsx": "react"
   },
-  "include": ["src/**/*", "api/**/*"],
+  "include": ["src/**/*", "api/**/*", "./serviceworker.js", "./vite.config.ts"],
 }

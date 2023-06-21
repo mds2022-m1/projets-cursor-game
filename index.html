@@ -3,11 +3,39 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/assets/images/cursor.png" />
+    <link rel="manifest" href="/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CursorGame</title>
 </head>
 <body>
 <div id="root"></div>
 <script type="module" src="/src/main.tsx"></script>
+<script>
+    if('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
+        })
+    }
+
+    /*
+    const urlsToCache = [
+        "/",
+        "/src/pages/Connection.tsx",
+        "/src/pages/Gameboard.tsx",
+        "/src/components/Cursor.tsx",
+        "/src/App.css","/src/App.tsx",
+        "/src/index.css",
+        "/src/socket.ts",
+        "/src/main.tsx"
+    ];
+    self.addEventListener("install", event => {
+        event.waitUntil(
+            caches.open("pwa-assets")
+                .then(cache => {
+                    return cache.addAll(urlsToCache);
+                })
+    )});
+    */
+</script>
 </body>
 </html>
