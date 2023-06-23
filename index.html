@@ -11,11 +11,22 @@
 <div id="root"></div>
 <script type="module" src="/src/main.tsx"></script>
 <script>
+    import * as PusherPushNotifications from "@pusher/push-notifications-web";
+
     if('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
         })
     }
+
+    const beamsClient = new PusherPushNotifications.Client({
+        instanceId: '8e3cbf5c-1e65-48cf-bae1-187f8c1fd284',
+    });
+
+    beamsClient.start()
+        .then(() => beamsClient.addDeviceInterest('hello'))
+        .then(() => console.log('Successfully registered and subscribed!'))
+        .catch(console.error);
 
     /*
     const urlsToCache = [
