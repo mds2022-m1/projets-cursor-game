@@ -1,22 +1,44 @@
-import React, { FormEvent } from 'react';
+import React, {FormEvent, useEffect, useState} from 'react';
 import '../App.css';
 import '../index.css';
 import { socket } from '../socket';
 import Cursor from '../components/Cursor';
-import { Player } from '../../global/types';
+import { CursorPlayer, Player } from '../../global/types';
 
 type GameboardProps = {
   connectedPlayers: number;
   currentPlayer: Player;
-  input: string;
-  setInput: (input: string) => void;
-  messages: string[];
-  cursors: any[];
 };
 
-const Gameboard = ({
-  connectedPlayers, currentPlayer, input, setInput, messages, cursors,
-}: GameboardProps) => {
+const Gameboard = ({ connectedPlayers, currentPlayer }: GameboardProps) => {
+  const [messages, setMessages] = useState<string[]>([]);
+  const [input, setInput] = useState('');
+  const [cursors, setCursors] = useState<CursorPlayer[]>([]);
+
+
+  useEffect(() => {
+    const onChatMessage = (data: any) => {
+      setMessages((oldMessages) => [...oldMessages, data.message]);
+    };
+    socket.on('chat_message', onChatMessage);
+
+    const onCursorPlayer = (data: CursorPlayer) => {
+      setCursors((oldCursors) => (oldCursors.find((cursor) => cursor.player.uuid === data.player.uuid) ? oldCursors.map((cursor) => (cursor.player.uuid === data.player.uuid ? data : cursor)) : [...oldCursors, data]));
+    };
+    socket.on('cursor_player', onCursorPlayer);
+
+    const onDisconnectedPlayer = (data: any) => {
+      setCursors((oldCursors) => oldCursors.filter((cursor) => cursor.player.uuid !== data.uuid));
+    };
+    socket.on('disconnectedPlayer', onDisconnectedPlayer);
+
+    return () => {
+      socket.off('chat_message');
+      socket.off('cursor_player');
+      socket.off('disconnectedPlayer');
+    };
+  }, []);
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (input !== '') {
@@ -29,8 +51,6 @@ const Gameboard = ({
     const cursorMessage = { position: { x: e.clientX, y: e.clientY }, player: currentPlayer };
     socket.emit('cursor_player', JSON.stringify(cursorMessage));
   };
-
-  console.log(currentPlayer);
 
   return (
     <div className="w-full flex">

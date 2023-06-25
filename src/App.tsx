@@ -1,68 +1,78 @@
 import React, { useEffect, useState } from 'react';
-import { Player, CursorPlayer } from '../global/types';
+import { Player } from '../global/types';
 import './App.css';
 import './index.css';
 import { socket } from './socket';
 
 import Gameboard from './pages/Gameboard';
 import Connection from './pages/Connection';
+import Waiting from './pages/Waiting';
 
 const App = () => {
-  const [connectedPlayers, setConnectedPlayers] = useState<number>(0);
+  const [playersInGame, setPlayersInGame] = useState<number>(0);
+  const [waitingPlayers, setWaitingPlayers] = useState<string[]>([]);
+
   const [currentPlayer, setCurrentPlayer] = useState<Player>();
-  const [messages, setMessages] = useState<string[]>([]);
-  const [input, setInput] = useState('');
-  const [cursors, setCursors] = useState<CursorPlayer[]>([]);
+  const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
-    const onChatMessage = (data: any) => {
-      setMessages((oldMessages) => [...oldMessages, data.message]);
+    /**
+     * La socket est connecté
+     */
+    const onConnect = () => {
+      setIsConnected(true);
     };
-    socket.on('chat_message', onChatMessage);
+    socket.on('connect', onConnect);
 
-    const onCursorPlayer = (data: CursorPlayer) => {
-      setCursors((oldCursors) => (oldCursors.find((cursor) => cursor.player.uuid === data.player.uuid) ? oldCursors.map((cursor) => (cursor.player.uuid === data.player.uuid ? data : cursor)) : [...oldCursors, data]));
+    /**
+     * La socket est déconnecté
+     */
+    const onDisconnect = () => {
+      setIsConnected(false);
     };
-    socket.on('cursor_player', onCursorPlayer);
+    socket.on('disconnect', onDisconnect);
 
+    /**
+     * Un joueur arrive dans la file d'attente
+     * @param data
+     */
     const onPlayerConnection = (data: any) => {
-      setConnectedPlayers(data.nbPlayers);
-      if (data.connectedPlayer.socketId === socket.id) {
-        setCurrentPlayer(data.connectedPlayer);
+      if (data.socketId === socket.id) {
+        setCurrentPlayer(data);
       }
     };
     socket.on('playerConnection', onPlayerConnection);
 
     const onDisconnectedPlayer = (data: any) => {
-      console.log(`${data.connectedPlayer.name} - Disconnected from server`);
-      setConnectedPlayers(data.nbPlayers);
-      setCursors((oldCursors) => oldCursors.filter((cursor) => cursor.player.uuid !== data.connectedPlayer.uuid));
+      console.log(`${data.name} - Disconnected from server`);
     };
     socket.on('disconnectedPlayer', onDisconnectedPlayer);
 
+    const playersCount = (data: any) => {
+      setPlayersInGame(data.nbPlayersInGame);
+      setWaitingPlayers(data.waitingPlayers);
+    };
+    socket.on('playersCount', playersCount);
+
     return () => {
-      socket.off('chat_message');
-      socket.off('cursor_player');
+      socket.off('connect');
+      socket.off('disconnect');
       socket.off('playerConnection');
       socket.off('disconnectedPlayer');
+      socket.off('nbPlayers');
     };
   }, []);
 
-  return (
-      <div className="h-full w-full m-0 p-0">
-        {currentPlayer !== undefined ? (
-          <Gameboard
-            connectedPlayers={connectedPlayers}
-            currentPlayer={currentPlayer}
-            messages={messages}
-            input={input}
-            setInput={setInput}
-            cursors={cursors} />
-        ) : (
-          <Connection />
-        )}
-      </div>
-  );
+  if (isConnected && currentPlayer !== undefined) {
+    const currentPlayerWaitingPosition = waitingPlayers.findIndex((player) => player === currentPlayer.uuid);
+    console.log(currentPlayerWaitingPosition);
+    if (playersInGame >= 1 && !currentPlayer?.isInGame && currentPlayerWaitingPosition !== -1) {
+      return <div className="h-full w-full m-0 p-0"><Waiting waitingQueue={currentPlayerWaitingPosition} /></div>;
+    }
+    socket.emit('enterGame');
+    currentPlayer.isInGame = true;
+    return <div className="h-full w-full m-0 p-0"><Gameboard connectedPlayers={playersInGame} currentPlayer={currentPlayer} /></div>;
+  }
+  return <div className="h-full w-full m-0 p-0"><Connection /></div>;
 };
-
 export default App;

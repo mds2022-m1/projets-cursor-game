@@ -3,6 +3,7 @@ export interface Player {
   name: string;
   color: string;
   socketId: string;
+  isInGame: boolean;
 }
 
 export interface CursorPlayer {

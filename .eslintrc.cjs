@@ -11,5 +11,7 @@ module.exports = {
     rules: {
         "max-len": "off",
         "import/extensions": "off",
+        "no-nested-ternary": "off",
+        "consistent-return": "off",
     }
 }

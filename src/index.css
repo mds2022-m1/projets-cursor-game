@@ -9,3 +9,8 @@
     margin: 0;
     padding: 0;
 }
+
+#cursor-playground {
+    background-image: url(../assets/images/parking_slot.jpeg);
+    background-size: cover;
+}

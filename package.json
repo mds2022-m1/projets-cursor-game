@@ -1,7 +1,7 @@
 {
   "name": "CursorGame",
   "version": "1.0.0",
-  "main": "api/index.ts",
+  "main": "api/index.js",
   "repository": "https://github.com/mds2022-m1/projets-cursor-game.git",
   "author": "Hallecsy <alexismuguetpro@gmail.com>",
   "license": "MIT",
